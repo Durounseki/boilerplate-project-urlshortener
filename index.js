@@ -65,6 +65,7 @@ function isUrlPattern(req, res, next) {
 
 function urlExists(req, res, next) {
   const hostname = req.urlObj.hostname;
+  //Check if the url exists
   dns.lookup(hostname, (err) => {
     if (err) {
       console.error("Invalid URL (DNS lookup failed):", err);
@@ -90,6 +91,16 @@ app.post("/api/shorturl", isUrlPattern, urlExists, async (req, res) => {
       });
     })
     .catch((err) => console.error("Error saving user:", err));
+});
+
+app.get("/api/shorturl/:short_url", (req, res) => {
+  //Check if there is a url with the shortened url
+  Url.findOne({ short_url: req.params.short_url })
+    .then((foundUrl) => {
+      // res.json({ url: foundUrl.url });
+      res.redirect(foundUrl.url);
+    })
+    .catch((err) => console.error("Error finding url:", err));
 });
 
 app.listen(port, function () {
