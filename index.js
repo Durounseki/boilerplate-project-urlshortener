@@ -80,12 +80,21 @@ function urlExists(req, res, next) {
   });
 }
 
-app.post("/api/shorturl", isUrlPattern, urlExists, (req, res) => {
+app.post("/api/shorturl", isUrlPattern, urlExists, async (req, res) => {
   const originalUrl = req.originalUrl;
-
   const newUrl = new Url({
-    
-  })
+    url: originalUrl,
+  });
+  newUrl
+    .save()
+    .then((savedUrl) => {
+      //update url_short by removing 0's on url_short_raw
+      res.json({
+        original_url: savedUrl.url,
+        short_url: savedUrl.short_url_raw,
+      });
+    })
+    .catch((err) => console.error("Error saving user:", err));
   
 });
 
