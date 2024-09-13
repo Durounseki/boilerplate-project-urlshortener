@@ -4,7 +4,7 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 const mongoose = require("mongoose");
-const mongooseSerial = require("mongoose-serial");
+const AutoIncrement = require("mongoose-sequence")(mongoose);
 const bodyParser = require("body-parser");
 const { Serializer } = require("v8");
 const { toUnicode } = require("punycode");
@@ -40,17 +40,13 @@ const urlSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
-  short_url_raw: {
-    type: String,
-    unique: true,
-  },
   short_url: {
     type: Number,
     unique: true,
   },
 });
 
-urlSchema.plugin(mongooseSerial, { field: "short_url_raw" });
+urlSchema.plugin(AutoIncrement, { inc_field: "short_url" });
 
 let Url = mongoose.model("Url", urlSchema);
 
@@ -88,14 +84,12 @@ app.post("/api/shorturl", isUrlPattern, urlExists, async (req, res) => {
   newUrl
     .save()
     .then((savedUrl) => {
-      //update url_short by removing 0's on url_short_raw
       res.json({
         original_url: savedUrl.url,
-        short_url: savedUrl.short_url_raw,
+        short_url: savedUrl.short_url,
       });
     })
     .catch((err) => console.error("Error saving user:", err));
-  
 });
 
 app.listen(port, function () {
